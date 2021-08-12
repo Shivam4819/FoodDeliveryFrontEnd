@@ -4,13 +4,14 @@ import axios from "axios";
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 
-export default function RestaurantMenu(){
+export default function RestaurantMenu(props){
     const location = useLocation();
 
+    const[itemArray, setItemArray] = useState([]);
     const id=location.state.hotel_id
     const hotelName=location.state.hotel_name
     const [arr,setArr]= useState([])
-
+    const [total,setTotal]=useState(0)
     useEffect(()=>{
         axios.post('http://localhost:8080/menus',{
             id:id
@@ -20,20 +21,27 @@ export default function RestaurantMenu(){
             })
     },[])
 
-    function addToCart(id,name,price){
-        axios.post('http://localhost:8080/order',{
-            itemid:id,
-            name:name,
-            price:price
-        }).then(response=>{
-            toast.dismiss()
-            if(response.data.code===200){
-                toast.success("item added to cart")
-            }else {
-                toast.error("item not added")
+    function cart(){
+        props.history.push({
+            pathname: '/cart',
+            state: {
+                itemArray: itemArray,
+                total: total
             }
         })
     }
+
+    function addToCart(id,name,price){
+        const item = {
+            id: id,
+            name: name,
+            price: price
+        }
+        itemArray.push(item)
+        toast.success("item added to cart")
+        setTotal(total+price)
+    }
+
     return(
         <div>
             <h2>{hotelName}</h2>
@@ -64,6 +72,9 @@ export default function RestaurantMenu(){
                             )
                         })
                     }
+                    Total: {total}<br/>
+                    <button className="btn btn-warning" onClick={cart}>Cart</button>
+
                     </tbody>
                 </table>
             </div>

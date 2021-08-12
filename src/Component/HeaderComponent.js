@@ -8,7 +8,7 @@ export default function HeaderComponent(){
                 <div></div>
                 <ul className="navbar-nav">
                     <li ><Link className="nav-link" to="/"> Home </Link></li>
-                    <li ><Link className="nav-link" to="/cart"> Cart </Link></li>
+                    {/*<li ><Link className="nav-link" to="/cart"> Cart </Link></li>*/}
                 </ul>
 
 

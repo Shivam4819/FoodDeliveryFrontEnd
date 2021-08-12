@@ -2,39 +2,71 @@ import React, {useEffect, useState} from "react";
 import axios from "axios";
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
+import {useLocation} from "react-router-dom";
 
 export default function CartComponent(props){
-    const [arr,setArr]= useState([])
+
+    const location = useLocation();
+    const [itemArray, setItemArray] = useState([])
+    const [total,setTotal]=useState(0)
+    const [tax,setTax]= useState(0)
+    const [delivery_charges, Setdelivery]=useState(0)
 
     useEffect(()=>{
-        axios.get('http://localhost:8080/cart',)
-            .then(response=> {
-                setArr(response.data)
-            })
+        if (location.state.itemArray!==undefined) {
+            const array = location.state.itemArray
+            const total= location.state.total
+            setTax(total*18/100)
+            Setdelivery(total*10/100)
+            setTotal(total)
+            if (array.length > 0)
+                setItemArray(location.state.itemArray);
+        }
     },[])
 
     function deleteItem(id){
-        axios.post('http://localhost:8080/delcart',{
-            id:id
-        }).then(response=>{
-            if(response.data.code===200) {
-                toast.success("item deleted from cart")
-                axios.get('http://localhost:8080/cart')
-                    .then(response=> {
-                        setArr(response.data)
-                    })
+        for (let i = 0; i < itemArray.length; i++) {
+            let obj = itemArray[i];
+
+            if (obj.id === id) {
+                itemArray.splice(i, 1);
+                setTotal(total-obj.price)
+                setTax(total*18/100)
+                Setdelivery(total*10/100)
             }
-            else {
-                toast.error("item not deleted from cart")
-            }
-        })
+        }
+
+        if (itemArray.length >0){
+            console.log("If:", itemArray)
+            setItemArray(itemArray);
+        }
+        else {
+            console.log("Else:", itemArray)
+            setItemArray([])
+        }
+        console.log("itemArray:", itemArray)
+        toast.success("item deleted from cart")
     }
 
     function placeOrder(){
-        axios.post('http://localhost:8080/placeOrder')
-            .then(response=>{
-                props.history.push("/order")
-            })
+        axios.post('http://localhost:8080/placeOrder',{
+            itemArray: itemArray
+        }).then(response=>{
+            toast.dismiss()
+            if(response.data.id===200){
+                toast.success("Order Placed!!")
+                props.history.push({
+                    pathname: '/order',
+                    state: {
+                        tax: tax,
+                        delivery: delivery_charges,
+                        total:total
+                    }
+                })
+            }else {
+                toast.error("Error while placing order!!")
+            }
+        })
     }
 
     return(
@@ -52,7 +84,7 @@ export default function CartComponent(props){
                     </thead>
                     <tbody>
                     {
-                        arr.map(value => {
+                        itemArray.map(value => {
                             // console.log(value)
                             return (
                                 <tr>
@@ -64,14 +96,21 @@ export default function CartComponent(props){
                                         autoClose={1000}
                                     />
                                 </tr>
-
-
                             )
                         })
                     }
 
                     </tbody>
-                    <button className="btn btn-warning" onClick={placeOrder}>Place Order</button>
+                    Tax: {tax}<br/>
+                    Delivery Charges:{delivery_charges}<br/>
+                    Total: {total}<br/>
+                    Final Amount= {tax+total+delivery_charges}<br/>
+                    {
+                        itemArray.length>0 ?
+                            <button className="btn btn-warning" onClick={placeOrder}>Place Order</button>
+                        :<></>
+                    }
+
                 </table>
 
             </div>

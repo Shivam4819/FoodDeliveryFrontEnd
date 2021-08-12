@@ -1,13 +1,19 @@
 import React, {useEffect, useState} from "react";
 import axios from "axios";
+import {useLocation} from "react-router-dom";
 
 export default function FinalOrderTable(props){
+    const location = useLocation();
+
     const [arr,setArr]= useState([])
-    const final=0;
+    const total= location.state.total
+    const tax= location.state.tax
+    const delivery_charges= location.state.delivery
     useEffect(()=>{
         axios.get('http://localhost:8080/finalorder')
-            .then(response=> {console.log(response)
+            .then(response=> {
                 setArr(response.data)
+
             })
     },[])
 
@@ -41,6 +47,9 @@ export default function FinalOrderTable(props){
                     }
 
                     </tbody>
+                   <h5> Tax: {tax}<br/>
+                        Delivery Charges:{delivery_charges}<br/>
+                        Final Amount= {tax+total+delivery_charges} </h5><br/>
                 </table>
 
             </div>
